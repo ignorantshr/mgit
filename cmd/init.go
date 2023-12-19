@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -24,6 +23,7 @@ func init() {
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a git directory",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := CreateRepository(args[0])
 		if err != nil {
@@ -41,10 +41,7 @@ type repository struct {
 }
 
 func CreateRepository(p string) (*repository, error) {
-	repo, err := newRepository(p, true)
-	if err != nil {
-		return nil, err
-	}
+	repo := newRepository(p, true)
 
 	stat, err := os.Stat(repo.worktree)
 	if err != nil {
@@ -94,27 +91,27 @@ func CreateRepository(p string) (*repository, error) {
 	return repo, nil
 }
 
-func newRepository(p string, force bool) (*repository, error) {
+func newRepository(p string, force bool) *repository {
 	r := &repository{}
 	r.worktree = p
-	r.gitdir = path.Join(p, "GitDir")
+	r.gitdir = path.Join(p, GitDir)
 
 	fileinfo, err := os.Stat(r.gitdir)
 
 	if !force && (os.IsNotExist(err) || !fileinfo.IsDir()) {
-		return nil, errors.New("not a Git repository")
+		util.PanicErr(fmt.Errorf("%s/{%v} not a Git repository", p, fileinfo))
 	}
 
 	cf, err := r.repoFile(false, "conf")
 	if err != nil {
-		return nil, err
+		util.PanicErr(err)
 	}
 	_, err = os.Stat(cf)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return r, nil
+			return r
 		}
-		return nil, err
+		util.PanicErr(err)
 	}
 
 	r.conf = viper.New()
@@ -123,19 +120,19 @@ func newRepository(p string, force bool) (*repository, error) {
 	r.conf.AddConfigPath(r.gitdir)
 	if err := r.conf.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok && !force {
-			return nil, fmt.Errorf("%s/conf file not found", GitDir)
+			util.PanicErr(fmt.Errorf("%s/conf file not found", GitDir))
 		} else {
-			return nil, err
+			util.PanicErr(err)
 		}
 	}
 
 	if !force {
 		if vers := r.conf.GetInt("core.repositoryformatversion"); vers != 0 {
-			return nil, fmt.Errorf("unsupported repositoryformatversion %d", vers)
+			util.PanicErr(fmt.Errorf("unsupported repositoryformatversion %d", vers))
 		}
 	}
 
-	return r, nil
+	return r
 }
 
 // 组装成 .git/** 文件字符串
@@ -158,14 +155,17 @@ func (r *repository) repoDir(mkdir bool, paths ...string) (string, error) {
 	return p, os.MkdirAll(p, 0755)
 }
 
-func FindRepo(p string) (*repository, error) {
+func FindRepo(p string) *repository {
+	if p == "" {
+		p = "."
+	}
 	if util.IsDir(path.Join(p, GitDir)) {
 		return newRepository(p, false)
 	}
 
 	pp := filepath.Dir(p)
 	if pp == "/" {
-		return nil, fmt.Errorf("no git directory")
+		util.PanicErr(fmt.Errorf("no git directory"))
 	}
 
 	return FindRepo(pp)
