@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ignorantshr/mgit/model"
 	"github.com/ignorantshr/mgit/util"
 	"github.com/spf13/cobra"
 )
@@ -30,27 +31,27 @@ var hashObjectCmd = &cobra.Command{
 	Short: "Compute object ID and optionally creates a blob from a file",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var repo *repository
+		var repo *model.Repository
 		if writeFlag {
 			dir, _ := os.Getwd()
-			repo = FindRepo(dir)
+			repo = model.FindRepo(dir)
 		}
 		sha := hashObject(args[0], typeFlag, repo)
 		fmt.Println(sha)
 	},
 }
 
-func hashObject(file string, format string, repo *repository) string {
+func hashObject(file string, format string, repo *model.Repository) string {
 	raw, err := os.ReadFile(file)
 	util.PanicErr(err)
 
-	var obj object
+	var obj model.Object
 	switch format {
 	case "blob":
-		obj = newBlob(raw)
+		obj = model.NewBlobObj(raw)
 	default:
 		util.PanicErr(errors.New("unsupported format " + format))
 	}
 
-	return writeObject(obj, repo)
+	return model.WriteObject(obj, repo)
 }

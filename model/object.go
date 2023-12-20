@@ -1,4 +1,4 @@
-package cmd
+package model
 
 import (
 	"bytes"
@@ -14,13 +14,13 @@ import (
 	"github.com/ignorantshr/mgit/util"
 )
 
-type object interface {
-	format() string
-	serialize(repo *repository) []byte
-	deserialize(data []byte)
+type Object interface {
+	Format() string
+	Serialize(repo *Repository) []byte
+	Deserialize(data []byte)
 }
 
-func readObject(repo *repository, sha string) object {
+func ReadObject(repo *Repository, sha string) Object {
 	path, err := repo.repoFile(false, "objects", sha[:2], sha[2:])
 	if err != nil {
 		util.PanicErr(err)
@@ -69,25 +69,26 @@ func readObject(repo *repository, sha string) object {
 	}
 
 	raw = raw[i:]
-	var constructor func([]byte) object
 
+	var obj Object
 	switch format {
 	case "commit":
+		obj = NewCommitObj(raw)
 	case "tree":
 	case "tag":
 	case "blob":
-		constructor = newBlob
+		obj = NewBlobObj(raw)
 	default:
 		util.PanicErr(_readObjectErr(nil, "unknown format "+format))
 	}
 
-	return constructor(raw)
+	return obj
 }
 
-func writeObject(obj object, repo *repository) string {
-	payload := obj.serialize(repo)
+func WriteObject(obj Object, repo *Repository) string {
+	payload := obj.Serialize(repo)
 
-	result := append([]byte(obj.format()), ' ')
+	result := append([]byte(obj.Format()), ' ')
 	result = strconv.AppendInt(result, int64(len(payload)), 10)
 	result = append(result, '\x00')
 	result = append(result, payload...)
@@ -117,33 +118,11 @@ func writeObject(obj object, repo *repository) string {
 	return sha[:]
 }
 
-// 存储用户文件数据，不需要特殊处理
-type blob struct {
-	fmt  string
-	data []byte
-}
-
-func newBlob(data []byte) object {
-	return &blob{"blob", data}
-}
-
-func (b *blob) format() string {
-	return b.fmt
-}
-
-func (b *blob) serialize(_ *repository) []byte {
-	return b.data
-}
-
-func (b *blob) deserialize(data []byte) {
-	b.data = data
-}
-
 func _readObjectErr(err error, reason string) error {
 	return errors.Join(err, fmt.Errorf("%s: %s", ERROR_READ_OBJECT, reason))
 }
 
 // todo
-func findObject(repo *repository, name, format string, follow bool) string {
+func FindObject(repo *Repository, name, format string, follow bool) string {
 	return name
 }

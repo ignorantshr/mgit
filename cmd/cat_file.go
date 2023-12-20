@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/ignorantshr/mgit/model"
 	"github.com/spf13/cobra"
 )
 
@@ -30,12 +31,12 @@ var catFileCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		repo := FindRepo(".")
+		repo := model.FindRepo(".")
 		catFile(repo, args[0], args[1])
 	},
 }
 
-func catFile(repo *repository, format, objStr string) {
-	object := readObject(repo, findObject(repo, objStr, format, true))
-	fmt.Println(object.serialize(nil))
+func catFile(repo *model.Repository, format, objStr string) {
+	object := model.ReadObject(repo, model.FindObject(repo, objStr, format, true))
+	fmt.Println(object.Serialize(nil))
 }
