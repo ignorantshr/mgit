@@ -17,7 +17,6 @@ func init() {
 var checkoutCmd = &cobra.Command{
 	Use:                   "checkout <commit> <path>",
 	Short:                 "Checkout a commit inside of a directory.",
-	ValidArgs:             []string{"commit", "path"},
 	DisableFlagsInUseLine: true,
 	Args:                  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
