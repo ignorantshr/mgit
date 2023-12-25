@@ -9,12 +9,17 @@ func IsFileExist(p string) bool {
 	return err == nil
 }
 
+func IsFile(p string) bool {
+	stat, err := os.Stat(p)
+	return err == nil && !stat.IsDir()
+}
+
 func IsDir(p string) bool {
 	stat, err := os.Stat(p)
 	return err == nil && stat.IsDir()
 }
 
-func IsFile(p string) bool {
-	stat, err := os.Stat(p)
-	return err == nil && !stat.IsDir()
+func IsDirEmpty(p string) bool {
+	entries, err := os.ReadDir(p)
+	return err == nil && len(entries) == 0
 }
