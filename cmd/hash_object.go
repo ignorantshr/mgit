@@ -29,7 +29,7 @@ func init() {
 var hashObjectCmd = &cobra.Command{
 	Use:   "hash-object [-w] [-t TYPE] FILE",
 	Short: "Compute object ID and optionally creates a blob from a file",
-	Args:  cobra.MinimumNArgs(1),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var repo *model.Repository
 		if writeFlag {

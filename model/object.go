@@ -2,14 +2,16 @@ package model
 
 import (
 	"bytes"
-	"compress/zlib"
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/ignorantshr/mgit/util"
 )
@@ -35,16 +37,18 @@ func ReadObject(repo *Repository, sha string) Object {
 		util.PanicErr(err)
 	}
 
-	r, err := zlib.NewReader(bytes.NewReader(f))
-	if err != nil {
-		util.PanicErr(err)
-	}
-	defer r.Close()
+	// r, err := zlib.NewReader(bytes.NewReader(f))
+	r := bytes.NewReader(f)
+	// if err != nil {
+	// 	util.PanicErr(err)
+	// }
+	// defer r.Close()
 
 	raw, err := io.ReadAll(r)
 	if err != nil {
 		util.PanicErr(err)
 	}
+	slog.Debug("ReadObject", "raw", raw)
 
 	// Read object type
 	i := bytes.IndexByte(raw, ' ')
@@ -53,7 +57,7 @@ func ReadObject(repo *Repository, sha string) Object {
 	}
 	format := string(raw[:i])
 
-	raw = raw[i:]
+	raw = raw[i+1:]
 	// Read object size
 	i = bytes.IndexByte(raw, '\x00') // null byte
 	if i == -1 {
@@ -123,7 +127,96 @@ func _readObjectErr(err error, reason string) error {
 	return errors.Join(err, fmt.Errorf("%s: %s", ERROR_READ_OBJECT, reason))
 }
 
-// todo
+// If name is HEAD, it will just resolve .git/HEAD;
+// If name is a full hash, this hash is returned unmodified.
+// If name looks like a short hash, it will collect objects whose full hash begin with this short hash.
+// At last, it will resolve tags and branches matching name.
 func FindObject(repo *Repository, name, format string, follow bool) string {
-	return name
+	shas := resolveObject(repo, name)
+	if len(shas) == 0 {
+		return ""
+	}
+	if len(shas) > 1 {
+		util.PanicErr(fmt.Errorf("Ambiguous reference %s: Candidates are:\n - %v.", name, strings.Join(shas, "\b - ")))
+		return ""
+	}
+
+	sha := shas[0]
+	if format == "" {
+		return sha
+	}
+
+	for {
+		obj := ReadObject(repo, sha)
+		if obj.Format() == format {
+			return sha
+		}
+
+		if !follow {
+			return ""
+		}
+
+		if obj.Format() == "tag" {
+			sha = obj.(*TagObj).Object
+		} else if obj.Format() == "commit" && format == "tree" {
+			sha = obj.(*CommitObj).Tree
+		} else {
+			return ""
+		}
+	}
+}
+
+/*
+	Resolve name to an object hash in repo.
+
+This function is aware of:
+
+  - the HEAD literal
+  - short and long hashes
+  - tags
+  - branches
+  - remote branches
+*/
+func resolveObject(repo *Repository, name string) []string {
+	candidates := make([]string, 0)
+	hashRegx := regexp.MustCompile("^[0-9A-Fa-f]{4,40}$")
+	name = strings.TrimSpace(name)
+
+	if name == "" {
+		return nil
+	}
+
+	if name == "HEAD" {
+		return []string{GetRefSha(repo, "HEAD")}
+	}
+
+	if hashRegx.Match([]byte(name)) {
+		name = strings.ToLower(name)
+		prefix := name[:2]
+		p, err := repo.repoDir(false, "objects", prefix)
+		util.PanicErr(err)
+
+		if p != "" {
+			rem := name[2:]
+			entries, err := os.ReadDir(p)
+			util.PanicErr(err)
+			for _, f := range entries {
+				if strings.HasPrefix(f.Name(), rem) {
+					candidates = append(candidates, prefix+f.Name())
+				}
+			}
+		}
+	}
+
+	asTag := GetRefSha(repo, "refs/tags/"+name)
+	if asTag != "" {
+		candidates = append(candidates, asTag)
+	}
+
+	asBranch := GetRefSha(repo, "refs/heads/"+name)
+	if asBranch != "" {
+		candidates = append(candidates, asBranch)
+	}
+
+	return candidates
 }

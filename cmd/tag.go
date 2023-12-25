@@ -6,11 +6,11 @@ import (
 )
 
 func init() {
-	createTagObj = tagCmd.Flags().BoolP("create_tag_object", "a", false, "Whether to create a tag object")
+	tagCmd.Flags().BoolVarP(&createTagObj, "create_tag_object", "a", false, "Whether to create a tag object")
 	rootCmd.AddCommand(tagCmd)
 }
 
-var createTagObj *bool
+var createTagObj bool
 
 var tagCmd = &cobra.Command{
 	Use:                   "tag | tag NAME [OBJECT] | tag -a NAME [OBJECT]",
@@ -19,8 +19,8 @@ var tagCmd = &cobra.Command{
 	Args:                  cobra.RangeArgs(0, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")
-		if *createTagObj {
-			createTag(repo, args[0], args[1], *createTagObj)
+		if createTagObj {
+			createTag(repo, args[0], args[1], createTagObj)
 		} else {
 			refs := model.ListRef(repo, "")
 			showRef(repo, refs["tags"].(map[string]any), false, "")
