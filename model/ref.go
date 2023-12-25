@@ -52,3 +52,15 @@ func ListRef(repo *Repository, p string) map[string]any {
 	}
 	return res
 }
+
+func CreateRef(repo *Repository, name, sha string) {
+	fnm, err := repo.repoFile(false, "refs/"+name)
+	if err != nil {
+		util.PanicErr(err)
+	}
+
+	err = os.WriteFile(fnm, []byte(sha), 0644)
+	if err != nil {
+		util.PanicErr(err)
+	}
+}

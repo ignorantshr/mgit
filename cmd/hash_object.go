@@ -52,5 +52,5 @@ func hashObject(file string, format string, repo *model.Repository) string {
 		util.PanicErr(errors.New("unsupported format " + format))
 	}
 
-	return model.WriteObject(obj, repo)
+	return model.WriteObject(repo, obj)
 }

@@ -33,12 +33,21 @@ func (c *CommitObj) Deserialize(data []byte) {
 
 // “Key-Value List with Message” for commit and tag files
 type kvlm struct {
+	// common
+	Message string
+
+	// commit
 	Author   string
 	Commiter string
 	Tree     string
 	Parent   string
 	Gpgsign  string
-	Message  string
+
+	// tag
+	Object string
+	Type   string
+	Tag    string
+	Tagger string
 }
 
 func (k *kvlm) parse(raw []byte) {

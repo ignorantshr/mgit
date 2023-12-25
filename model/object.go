@@ -86,7 +86,7 @@ func ReadObject(repo *Repository, sha string) Object {
 	return obj
 }
 
-func WriteObject(obj Object, repo *Repository) string {
+func WriteObject(repo *Repository, obj Object) string {
 	payload := obj.Serialize(repo)
 
 	result := append([]byte(obj.Format()), ' ')
