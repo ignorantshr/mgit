@@ -73,8 +73,9 @@ func ReadObject(repo *Repository, sha string) Object {
 	var obj Object
 	switch format {
 	case "commit":
-		obj = NewCommitObj(raw)
+		obj = NewCommitObj()
 	case "tree":
+		obj = NewTreeObj()
 	case "tag":
 	case "blob":
 		obj = NewBlobObj(raw)

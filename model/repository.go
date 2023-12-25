@@ -137,6 +137,11 @@ func FindRepo(p string) *Repository {
 	if p == "" {
 		p = "."
 	}
+	if p == "." {
+		var err error
+		p, err = os.Getwd()
+		util.PanicErr(err)
+	}
 	if util.IsDir(path.Join(p, GitDir)) {
 		return newRepository(p, false)
 	}

@@ -31,21 +31,21 @@ var logCmd = &cobra.Command{
 func logPrint(repo *model.Repository, sha string) {
 	commit := model.ReadObject(repo, sha).(*model.CommitObj)
 	kv := commit.KV()
-	msg := kv["message"]
+	msg := kv.Message
 
 	fmt.Println("commit", sha)
-	fmt.Println("Author:", kv["author"])
-	fmt.Println("Date:", kv["date"])
+	fmt.Println("Author:", kv.Author)
+	// fmt.Println("Date:", kv.Author)
 	fmt.Println()
 	fmt.Println("\t", msg)
 	fmt.Println()
 
-	parent, ok := kv["parent"]
-	if !ok {
+	parent := kv.Parent
+	if len(parent) == 0 {
 		return
 	}
 
-	ps := strings.Split(parent, ",")
+	ps := strings.Split(parent, "\n")
 	for _, p := range ps {
 		logPrint(repo, p)
 	}

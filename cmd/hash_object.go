@@ -33,8 +33,7 @@ var hashObjectCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var repo *model.Repository
 		if writeFlag {
-			dir, _ := os.Getwd()
-			repo = model.FindRepo(dir)
+			repo = model.FindRepo(".")
 		}
 		sha := hashObject(args[0], typeFlag, repo)
 		fmt.Println(sha)
