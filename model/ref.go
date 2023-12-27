@@ -22,7 +22,7 @@ func GetRefSha(repo *Repository, ref string) string {
 	if err != nil {
 		util.PanicErr(err)
 	}
-	data := string(raw)
+	data := strings.TrimSpace(string(raw))
 	if strings.HasPrefix(data, "ref: ") {
 		return GetRefSha(repo, data[5:])
 	}

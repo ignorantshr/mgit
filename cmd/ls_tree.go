@@ -29,6 +29,9 @@ var lsTreeCmd = &cobra.Command{
 
 func lsTree(repo *model.Repository, ref, prefix string, recursive bool) {
 	sha := model.FindObject(repo, ref, "tree", true)
+	if sha == "" {
+		return
+	}
 	obj := model.ReadObject(repo, sha).(*model.TreeObj)
 
 	typ := ""

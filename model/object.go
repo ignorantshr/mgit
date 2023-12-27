@@ -23,6 +23,9 @@ type Object interface {
 }
 
 func ReadObject(repo *Repository, sha string) Object {
+	if sha == "" {
+		return nil
+	}
 	path, err := repo.repoFile(false, "objects", sha[:2], sha[2:])
 	if err != nil {
 		util.PanicErr(err)
@@ -81,6 +84,7 @@ func ReadObject(repo *Repository, sha string) Object {
 	case "tree":
 		obj = NewTreeObj()
 	case "tag":
+		obj = NewTagObj()
 	case "blob":
 		obj = NewBlobObj(raw)
 	default:
@@ -137,7 +141,7 @@ func FindObject(repo *Repository, name, format string, follow bool) string {
 		return ""
 	}
 	if len(shas) > 1 {
-		util.PanicErr(fmt.Errorf("Ambiguous reference %s: Candidates are:\n - %v.", name, strings.Join(shas, "\b - ")))
+		util.PanicErr(fmt.Errorf("Ambiguous reference %s: Candidates are:\n - %v", name, strings.Join(shas, "\b - ")))
 		return ""
 	}
 
@@ -187,7 +191,11 @@ func resolveObject(repo *Repository, name string) []string {
 	}
 
 	if name == "HEAD" {
-		return []string{GetRefSha(repo, "HEAD")}
+		sha := GetRefSha(repo, "HEAD")
+		if sha != "" {
+			candidates = append(candidates, sha)
+		}
+		return candidates
 	}
 
 	if hashRegx.Match([]byte(name)) {

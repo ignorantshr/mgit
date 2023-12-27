@@ -113,6 +113,14 @@ func newRepository(p string, force bool) *Repository {
 	return r
 }
 
+func (r *Repository) Worktree() string {
+	return r.worktree
+}
+
+func (r *Repository) GitDir() string {
+	return r.gitdir
+}
+
 // 组装成 .git/** 文件字符串
 func (r *Repository) repoPath(paths ...string) string {
 	return path.Join(r.gitdir, path.Join(paths...))

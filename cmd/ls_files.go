@@ -18,7 +18,7 @@ func init() {
 }
 
 var lsFilesCmd = &cobra.Command{
-	Use:   "lsFiles",
+	Use:   "ls-files",
 	Short: "List all the stage files",
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")

@@ -37,6 +37,10 @@ var catFileCmd = &cobra.Command{
 }
 
 func catFile(repo *model.Repository, format, objStr string) {
-	object := model.ReadObject(repo, model.FindObject(repo, objStr, format, true))
+	sha := model.FindObject(repo, objStr, format, true)
+	if sha == "" {
+		return
+	}
+	object := model.ReadObject(repo, sha)
 	fmt.Println(object.Serialize(nil))
 }

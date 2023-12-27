@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"path"
 	"sort"
 	"strings"
 
@@ -96,4 +97,28 @@ func parseTreeLeaf(raw []byte) (int, *treeLeaf) {
 
 	leaf.Sha = hex.EncodeToString(raw[null+1 : null+21])
 	return null + 21, leaf
+}
+
+// 树扁平化
+func Tree2Map(repo *Repository, ref string, prefix string) map[string]string {
+	res := make(map[string]string)
+	sha := FindObject(repo, ref, "tree", true)
+	if sha == "" {
+		return res
+	}
+	tree := ReadObject(repo, sha).(*TreeObj)
+
+	for _, leaf := range tree.items {
+		fullPath := path.Join(prefix, leaf.Path)
+		if strings.HasPrefix(leaf.Mode, "04") {
+			subTree := Tree2Map(repo, leaf.Sha, fullPath)
+			for k, v := range subTree {
+				res[k] = v
+			}
+		} else {
+			res[fullPath] = leaf.Sha
+		}
+	}
+
+	return res
 }

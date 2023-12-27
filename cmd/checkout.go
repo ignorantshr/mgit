@@ -22,6 +22,9 @@ var checkoutCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")
 		obj := model.ReadObject(repo, model.FindObject(repo, args[0], "", true))
+		if obj == nil {
+			return
+		}
 		if obj.Format() == "commit" {
 			cobj := obj.(*model.CommitObj)
 			obj = model.ReadObject(repo, cobj.KV().Tree)
