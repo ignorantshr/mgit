@@ -26,7 +26,7 @@ func ReadObject(repo *Repository, sha string) Object {
 	if sha == "" {
 		return nil
 	}
-	path, err := repo.repoFile(false, "objects", sha[:2], sha[2:])
+	path, err := repo.RepoFile(false, "objects", sha[:2], sha[2:])
 	if err != nil {
 		util.PanicErr(err)
 	}
@@ -106,7 +106,7 @@ func WriteObject(repo *Repository, obj Object) string {
 	sha := hex.EncodeToString(rawsha[:])
 
 	if repo != nil {
-		p, err := repo.repoFile(true, "objects", string(sha[:2]), string(sha[2:]))
+		p, err := repo.RepoFile(true, "objects", string(sha[:2]), string(sha[2:]))
 		if err != nil {
 			util.PanicErr(err)
 		}

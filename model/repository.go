@@ -80,7 +80,7 @@ func newRepository(p string, force bool) *Repository {
 		util.PanicErr(fmt.Errorf("%s/{%v} not a Git repository", p, fileinfo))
 	}
 
-	cf, err := r.repoFile(false, "conf")
+	cf, err := r.RepoFile(false, "conf")
 	if err != nil {
 		util.PanicErr(err)
 	}
@@ -127,7 +127,7 @@ func (r *Repository) repoPath(paths ...string) string {
 }
 
 // 组装 .git/** 文件字符串，如果父目录缺失则创建目录结构
-func (r *Repository) repoFile(mkdir bool, paths ...string) (string, error) {
+func (r *Repository) RepoFile(mkdir bool, paths ...string) (string, error) {
 	if _, err := r.repoDir(mkdir, paths[:len(paths)-1]...); err != nil {
 		return "", err
 	} else {

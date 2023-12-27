@@ -7,6 +7,8 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"path"
+	"sort"
 	"strconv"
 
 	"github.com/ignorantshr/mgit/util"
@@ -52,7 +54,7 @@ func NewIndex(ver int, entries []*IndexEntry) *Index {
 }
 
 func ReadIndex(repo *Repository) *Index {
-	indexFile, err := repo.repoFile(false, "index")
+	indexFile, err := repo.RepoFile(false, "index")
 	util.PanicErr(err)
 
 	index := NewIndex(2, nil)
@@ -134,7 +136,7 @@ func ReadIndex(repo *Repository) *Index {
 }
 
 func WriteIndex(repo *Repository, index *Index) {
-	p, err := repo.repoFile(false, "index")
+	p, err := repo.RepoFile(false, "index")
 	util.PanicErr(err)
 	f, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	util.PanicErr(err)
@@ -191,4 +193,54 @@ func WriteIndex(repo *Repository, index *Index) {
 			idx += pad
 		}
 	}
+}
+
+func Index2Tree(repo *Repository, index *Index) string {
+	contents := make(map[string][]any)
+	sortpaths := make([]string, 0)
+
+	for _, e := range index.Entries {
+		dir := path.Dir(e.Name)
+
+		for dir != "." {
+			if _, ok := contents[dir]; !ok {
+				contents[dir] = []any{}
+			}
+			dir = path.Dir(dir)
+		}
+
+		contents[dir] = append(contents[dir], e)
+		sortpaths = append(sortpaths, dir)
+	}
+
+	sort.Slice(sortpaths, func(i, j int) bool {
+		return len(sortpaths[i]) > len(sortpaths[j])
+	})
+
+	sha := ""
+	for _, p := range sortpaths {
+		tree := NewTreeObj()
+
+		for _, e := range contents[p] {
+			// An entry can be a normal GitIndexEntry read from the index,
+			// or a tree we've created.
+			var leaf *treeLeaf
+			switch v := e.(type) {
+			case *IndexEntry:
+				leafMode := fmt.Sprintf("%02o%04o", v.ModeType, v.ModePerms)
+				leaf = &treeLeaf{Mode: leafMode, Path: path.Base(v.Name), Sha: v.Sha}
+			case [2]string:
+				leafMode := fmt.Sprintf("%02o%04o", 4, 0)
+				leaf = &treeLeaf{Mode: leafMode, Path: path.Base(v[0]), Sha: v[1]}
+			}
+			tree.items = append(tree.items, leaf)
+		}
+
+		sha = WriteObject(repo, tree)
+		parent := path.Dir(p)
+		base := path.Base(p)
+		contents[parent] = append(contents[parent], [2]string{base, sha})
+	}
+
+	return sha
 }

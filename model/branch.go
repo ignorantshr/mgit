@@ -9,7 +9,7 @@ import (
 )
 
 func GetActiveBranch(repo *Repository) string {
-	rf, err := repo.repoFile(false, "HEAD")
+	rf, err := repo.RepoFile(false, "HEAD")
 	util.PanicErr(err)
 
 	head, err := os.ReadFile(rf)

@@ -3,7 +3,9 @@ package model
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type CommitObj struct {
@@ -29,6 +31,27 @@ func (c *CommitObj) Serialize(_ *Repository) []byte {
 
 func (c *CommitObj) Deserialize(data []byte) {
 	c.kvlm.parse(data)
+}
+
+func CreateCommit(repo *Repository, tree, parent, author, msg string, ts time.Time) *CommitObj {
+	c := NewCommitObj()
+	c.Tree = tree
+	c.Parent = parent
+
+	offset := ts.UTC().Sub(ts)
+	hours := offset / 3600
+	minutes := (offset % 3600) / 60
+	pre := '+'
+	if offset < 0 {
+		pre = '-'
+	}
+	tz := fmt.Sprintf("%c%02d%02d", pre, hours, minutes)
+	author += " " + strconv.FormatInt(ts.Unix(), 10) + " " + tz
+	c.Commiter = author
+	c.Author = author
+	c.Message = msg
+
+	return c
 }
 
 // “Key-Value List with Message” for commit and tag files

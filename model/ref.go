@@ -9,7 +9,7 @@ import (
 )
 
 func GetRefSha(repo *Repository, ref string) string {
-	p, err := repo.repoFile(false, ref)
+	p, err := repo.RepoFile(false, ref)
 	if err != nil {
 		util.PanicErr(err)
 	}
@@ -54,7 +54,7 @@ func ListRef(repo *Repository, p string) map[string]any {
 }
 
 func CreateRef(repo *Repository, name, sha string) {
-	fnm, err := repo.repoFile(false, "refs/"+name)
+	fnm, err := repo.RepoFile(false, "refs/"+name)
 	if err != nil {
 		util.PanicErr(err)
 	}
