@@ -12,14 +12,14 @@ import (
 	"github.com/ignorantshr/mgit/util"
 )
 
-type timePair struct {
+type TimePair struct {
 	S  int64
 	NS int64
 }
 
 type IndexEntry struct {
-	Ctime          timePair
-	Mtime          timePair
+	Ctime          TimePair
+	Mtime          TimePair
 	Device         int64 // the ID of device containing this file
 	Inode          int64 // inode
 	ModeType       int   // The object type, either b1000 (regular), b1010 (symlink), b1110 (gitlink)
@@ -114,8 +114,8 @@ func ReadIndex(repo *Repository) *Index {
 		name := string(rawName)
 		idx = 8 * int64(math.Ceil(float64(idx)/8))
 		index.Entries = append(index.Entries, &IndexEntry{
-			Ctime:          timePair{ctime_s, ctime_ns},
-			Mtime:          timePair{mtime_s, mtime_ns},
+			Ctime:          TimePair{ctime_s, ctime_ns},
+			Mtime:          TimePair{mtime_s, mtime_ns},
 			Device:         device,
 			Inode:          ino,
 			ModeType:       int(modeType),

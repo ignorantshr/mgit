@@ -24,7 +24,7 @@ var rmCmd = &cobra.Command{
 	},
 }
 
-func rm(repo *model.Repository, paths []string, real bool) {
+func rm(repo *model.Repository, paths []string, realDelete bool) {
 	index := model.ReadIndex(repo)
 
 	worktree := repo.Worktree() + string(filepath.Separator)
@@ -50,7 +50,7 @@ func rm(repo *model.Repository, paths []string, real bool) {
 		}
 	}
 
-	if real {
+	if realDelete {
 		for _, p := range remove {
 			os.RemoveAll(p)
 		}
