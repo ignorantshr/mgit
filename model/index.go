@@ -2,6 +2,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"math/big"
@@ -130,4 +131,64 @@ func ReadIndex(repo *Repository) *Index {
 	}
 
 	return index
+}
+
+func WriteIndex(repo *Repository, index *Index) {
+	p, err := repo.repoFile(false, "index")
+	util.PanicErr(err)
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	util.PanicErr(err)
+	defer f.Close()
+
+	// 字节宽度，int 值
+	wrinteger := func(width, value int) {
+		f.WriteString(fmt.Sprintf(fmt.Sprintf("%%%ds", width), strconv.Itoa(index.Version)))
+	}
+
+	// HEADER
+	f.WriteString("DIRC")
+	wrinteger(4, index.Version)
+	wrinteger(4, len(index.Entries))
+
+	// ENTRIES
+
+	idx := 0
+	for _, e := range index.Entries {
+		wrinteger(4, int(e.Ctime.S))
+		wrinteger(4, int(e.Ctime.NS))
+		wrinteger(4, int(e.Mtime.S))
+		wrinteger(4, int(e.Mtime.NS))
+		wrinteger(4, int(e.Device))
+		wrinteger(4, int(e.Inode))
+
+		wrinteger(4, int(e.ModeType<<12|e.ModePerms))
+		wrinteger(4, int(e.Uid))
+		wrinteger(4, int(e.Gid))
+		wrinteger(4, int(e.Fsize))
+
+		sha, _ := hex.DecodeString(e.Sha)
+		f.Write(sha)
+
+		flagAssumValid := 0
+		if e.FlagAssumValid {
+			flagAssumValid = 0x1 << 15
+		}
+		nameLen := len(e.Name)
+		if nameLen >= 0xFFF {
+			nameLen = 0xFFF
+		}
+		wrinteger(2, flagAssumValid|int(e.FlagStage)|nameLen)
+		f.WriteString(e.Name)
+
+		// 0x00
+		wrinteger(1, 0)
+
+		idx += 62 + nameLen + 1
+
+		if idx%8 != 0 {
+			pad := 8 - idx%8
+			wrinteger(pad, 0)
+			idx += pad
+		}
+	}
 }
