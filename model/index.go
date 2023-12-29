@@ -71,31 +71,31 @@ func ReadIndex(repo *Repository) *Index {
 	if string(signature) != "DIRC" {
 		util.PanicErr(fmt.Errorf("index file header error: %v", signature))
 	}
-	version, _ := strconv.Atoi(string(header[4:8]))
+	version := util.BytesToInt(header[4:8])
 	if version != 2 {
 		util.PanicErr(fmt.Errorf("index file version error: %v", version))
 	}
-	count, _ := strconv.Atoi(string(header[8:])) // how much entries
+	count := util.BytesToInt(header[8:])
 
 	content := raw[12:]
 	idx := int64(0)
 	for i := 0; i < count; i++ {
-		ctime_s, _ := strconv.ParseInt(string(content[idx:idx+4]), 10, 64)
-		ctime_ns, _ := strconv.ParseInt(string(content[idx+4:idx+8]), 10, 64)
-		mtime_s, _ := strconv.ParseInt(string(content[idx+8:idx+12]), 10, 64)
-		mtime_ns, _ := strconv.ParseInt(string(content[idx+12:idx+16]), 10, 64)
-		device, _ := strconv.ParseInt(string(content[idx+16:idx+20]), 10, 64)
-		ino, _ := strconv.ParseInt(string(content[idx+20:idx+24]), 10, 64)
-		// unused, _ := strconv.ParseInt(string(content[idx+24:idx+26]), 10, 64) // assert
-		mode, _ := strconv.ParseInt(string(content[idx+26:idx+28]), 10, 64)
+		ctime_s := util.BytesToInt64(content[idx : idx+4])
+		ctime_ns := util.BytesToInt64(content[idx+4 : idx+8])
+		mtime_s := util.BytesToInt64(content[idx+8 : idx+12])
+		mtime_ns := util.BytesToInt64(content[idx+12 : idx+16])
+		device := util.BytesToInt64(content[idx+16 : idx+20])
+		ino := util.BytesToInt64(content[idx+20 : idx+24])
+		// unused := util.BytesToInt(content[idx+24:idx+26]) // assert
+		mode := util.BytesToInt(content[idx+26 : idx+28])
 		modeType := mode >> 12
-		modePerms := modeType & 0b0000000111111111
+		modePerms := mode & 0b0000000111111111
 
-		uid, _ := strconv.ParseInt(string(content[idx+28:idx+32]), 10, 64)
-		gid, _ := strconv.ParseInt(string(content[idx+32:idx+36]), 10, 64)
-		fsize, _ := strconv.ParseInt(string(content[idx+36:idx+40]), 10, 64)
+		uid := util.BytesToInt(content[idx+28 : idx+32])
+		gid := util.BytesToInt(content[idx+32 : idx+36])
+		fsize := util.BytesToInt64(content[idx+36 : idx+40])
 		sha := fmt.Sprintf("%40x", new(big.Int).SetBytes(content[idx+40:idx+60])) // 将字节序列表示的整数转换为一个 40 字节长度的十六进制字符串
-		flags, _ := strconv.ParseInt(string(content[idx+60:idx+62]), 10, 64)
+		flags := util.BytesToInt64(content[idx+60 : idx+62])
 		flagAssumValid := (flags & 0b1000000000000000) != 0
 		// flagExtend := (flags & 0b0100000000000000) != 0 // assert
 		flagStage := flags & 0b0011000000000000
@@ -116,7 +116,7 @@ func ReadIndex(repo *Repository) *Index {
 		name := string(rawName)
 		idx = 8 * int64(math.Ceil(float64(idx)/8))
 		index.Entries = append(index.Entries, &IndexEntry{
-			Ctime:          TimePair{ctime_s, ctime_ns},
+			Ctime:          TimePair{int64(ctime_s), ctime_ns},
 			Mtime:          TimePair{mtime_s, mtime_ns},
 			Device:         device,
 			Inode:          ino,
@@ -144,7 +144,7 @@ func WriteIndex(repo *Repository, index *Index) {
 
 	// 字节宽度，int 值
 	wrinteger := func(width, value int) {
-		f.WriteString(fmt.Sprintf(fmt.Sprintf("%%%ds", width), strconv.Itoa(index.Version)))
+		f.Write(util.IntToBytes(value, width))
 	}
 
 	// HEADER
@@ -189,7 +189,8 @@ func WriteIndex(repo *Repository, index *Index) {
 
 		if idx%8 != 0 {
 			pad := 8 - idx%8
-			wrinteger(pad, 0)
+			buf := make([]byte, pad)
+			f.Write(buf)
 			idx += pad
 		}
 	}
@@ -202,11 +203,12 @@ func Index2Tree(repo *Repository, index *Index) string {
 	for _, e := range index.Entries {
 		dir := path.Dir(e.Name)
 
-		for dir != "." {
-			if _, ok := contents[dir]; !ok {
-				contents[dir] = []any{}
+		key := dir
+		for key != "." {
+			if _, ok := contents[key]; !ok {
+				contents[key] = []any{}
 			}
-			dir = path.Dir(dir)
+			key = path.Dir(key)
 		}
 
 		contents[dir] = append(contents[dir], e)
@@ -227,10 +229,12 @@ func Index2Tree(repo *Repository, index *Index) string {
 			var leaf *treeLeaf
 			switch v := e.(type) {
 			case *IndexEntry:
-				leafMode := fmt.Sprintf("%02o%04o", v.ModeType, v.ModePerms)
+				mode, _ := strconv.Atoi(fmt.Sprintf("%02o%04o", v.ModeType, v.ModePerms))
+				leafMode := string(util.IntToBytes(mode, 6))
 				leaf = &treeLeaf{Mode: leafMode, Path: path.Base(v.Name), Sha: v.Sha}
 			case [2]string:
-				leafMode := fmt.Sprintf("%02o%04o", 4, 0)
+				mode, _ := strconv.Atoi(fmt.Sprintf("%02o%04o", 4, 0))
+				leafMode := string(util.IntToBytes(mode, 6))
 				leaf = &treeLeaf{Mode: leafMode, Path: path.Base(v[0]), Sha: v[1]}
 			}
 			tree.items = append(tree.items, leaf)

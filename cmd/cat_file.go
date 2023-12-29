@@ -17,7 +17,7 @@ func init() {
 }
 
 var catFileCmd = &cobra.Command{
-	Use:   "cat-file {blob} object",
+	Use:   "cat-file {blob|commit|tag|tree} object",
 	Short: "Provide content of repository objects",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
@@ -25,6 +25,9 @@ var catFileCmd = &cobra.Command{
 		}
 		switch args[0] {
 		case "blob":
+		case "commit":
+		case "tag":
+		case "tree":
 		default:
 			return fmt.Errorf("unsupported format %s", args[0])
 		}
@@ -42,5 +45,5 @@ func catFile(repo *model.Repository, format, objStr string) {
 		return
 	}
 	object := model.ReadObject(repo, sha)
-	fmt.Println(object.Serialize(nil))
+	fmt.Printf("%s", object.Serialize(nil))
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -68,6 +69,7 @@ func statusHeadIndex(repo *model.Repository, index *model.Index) {
 	for k := range head {
 		fmt.Printf("\tdeleted: %s", k)
 	}
+	fmt.Println()
 }
 
 // 将 index 文件和 文件系统 做对比，找出没有处于 stage 的更改
@@ -80,11 +82,14 @@ func statusHeadWorktree(repo *model.Repository, index *model.Index) {
 	if len(index.Entries) != 0 {
 		fmt.Println("Changes not staged for commit:")
 	}
+
+	modified := []string{}
+	deleted := []string{}
 	for _, v := range index.Entries {
 		fullPath := path.Join(repo.Worktree(), v.Name)
 
 		if !util.IsFileExist(fullPath) {
-			fmt.Printf("\tdeleted: %v\n", v.Name)
+			deleted = append(deleted, v.Name)
 		} else {
 			stat, _ := os.Stat(fullPath)
 			ctimeNS := v.Ctime.S*int64(math.Pow10(9)) + v.Ctime.NS
@@ -96,7 +101,7 @@ func statusHeadWorktree(repo *model.Repository, index *model.Index) {
 			if ctimeNS != ctime.UnixNano() || mtimeNS != stat.ModTime().UnixNano() {
 				newSha := hashObject(fullPath, "blob", nil)
 				if newSha != v.Sha {
-					fmt.Printf("\tmodified: %v", v.Name)
+					modified = append(modified, v.Name)
 				}
 			}
 		}
@@ -104,15 +109,31 @@ func statusHeadWorktree(repo *model.Repository, index *model.Index) {
 		delete(allFiles, v.Name)
 	}
 
+	sort.Strings(modified)
+	for _, name := range modified {
+		fmt.Printf("\tmodified: %v", name)
+	}
+
+	sort.Strings(deleted)
+	for _, name := range deleted {
+		fmt.Printf("\tdeleted: %v\n", name)
+	}
+
+	untracked := []string{}
 	if len(allFiles) != 0 {
 		fmt.Println()
 		fmt.Println("Untracked files:")
 
 		for f := range allFiles {
 			if !model.CheckIgnore(f, ignore) {
-				fmt.Printf("\t%v\n", f)
+				untracked = append(untracked, f)
 			}
 		}
+	}
+
+	sort.Strings(untracked)
+	for _, name := range untracked {
+		fmt.Printf("\t%v\n", name)
 	}
 }
 

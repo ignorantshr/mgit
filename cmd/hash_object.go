@@ -47,10 +47,17 @@ func hashObject(file string, format string, repo *model.Repository) string {
 	var obj model.Object
 	switch format {
 	case "blob":
-		obj = model.NewBlobObj(raw)
+		obj = model.NewBlobObj()
+	case "tree":
+		obj = model.NewBlobObj()
+	case "commit":
+		obj = model.NewCommitObj()
+	case "tag":
+		obj = model.NewTagObj()
 	default:
 		util.PanicErr(errors.New("unsupported format " + format))
 	}
 
+	obj.Deserialize(raw)
 	return model.WriteObject(repo, obj)
 }

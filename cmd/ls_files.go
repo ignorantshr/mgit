@@ -47,7 +47,7 @@ func lsFiles(repo *model.Repository, verbose bool) {
 			fmt.Printf("\tdevice: %v, inode: %v\n", v.Device, v.Inode)
 			u, _ := user.LookupId(strconv.Itoa(v.Uid))
 			g, _ := user.LookupGroupId(strconv.Itoa(v.Gid))
-			fmt.Printf("\tuser: %v(%v), group: %v(%v)\n", u, v.Uid, g.Name, v.Gid)
+			fmt.Printf("\tuser: %v(%v), group: %v(%v)\n", u.Username, v.Uid, g.Name, v.Gid)
 			fmt.Printf("\tflags: stage=%v assume_valid=%v\n", v.FlagStage, v.FlagAssumValid)
 		}
 	}

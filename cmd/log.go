@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ignorantshr/mgit/model"
 	"github.com/spf13/cobra"
@@ -21,7 +23,7 @@ var logCmd = &cobra.Command{
 		if len(args) >= 1 {
 			sha = args[0]
 		} else {
-			sha = "HEAED"
+			sha = "HEAD"
 		}
 		sha = model.FindObject(repo, sha, "", true)
 		logPrint(repo, sha)
@@ -32,12 +34,14 @@ func logPrint(repo *model.Repository, sha string) {
 	commit := model.ReadObject(repo, sha).(*model.CommitObj)
 	kv := commit.KV()
 	msg := kv.Message
+	author := strings.Split(kv.Author, " ")
+	ts, _ := strconv.Atoi(author[2])
 
 	fmt.Println("commit", sha)
-	fmt.Println("Author:", kv.Author)
-	// fmt.Println("Date:", kv.Author)
+	fmt.Println("Author:", author[0], author[1])
+	fmt.Println("Date:  ", time.Unix(int64(ts), 0))
 	fmt.Println()
-	fmt.Println("\t", msg)
+	fmt.Println("    " + msg)
 	fmt.Println()
 
 	parent := kv.Parent

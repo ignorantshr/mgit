@@ -18,7 +18,7 @@ func init() {
 }
 
 var lsTreeCmd = &cobra.Command{
-	Use:   "ls-tree",
+	Use:   "ls-tree TREE",
 	Short: "Pretty-print a tree object.",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -57,7 +57,7 @@ func lsTree(repo *model.Repository, ref, prefix string, recursive bool) {
 		if recursive && typ == "tree" {
 			lsTree(repo, ref, path.Join(prefix, v.Path), recursive)
 		} else { // leaf
-			fmt.Printf("%v %v %v\t%v", strings.Repeat("0", 6-len(v.Mode))+v.Mode, typ, v.Sha, path.Join(prefix, v.Path))
+			fmt.Printf("%v %v %v\t%v\n", strings.Repeat("0", 6-len(v.Mode))+v.Mode, typ, v.Sha, path.Join(prefix, v.Path))
 		}
 	}
 }

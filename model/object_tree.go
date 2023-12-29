@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/ignorantshr/mgit/util"
@@ -68,6 +69,13 @@ func serializeTree(items []*treeLeaf) []byte {
 
 	res := bytes.Buffer{}
 	for _, item := range items {
+		// res = append(res, []byte(item.Mode)...)
+		// res = append(res, ' ')
+		// res = append(res, []byte(item.Path)...)
+		// res = append(res, '\x00')
+		// sha, err := hex.DecodeString(item.Sha)
+		// util.PanicErr(err)
+		// res = append(res, sha...)
 		res.WriteString(item.Mode)
 		res.WriteByte(' ')
 		res.WriteString(item.Path)
@@ -78,6 +86,7 @@ func serializeTree(items []*treeLeaf) []byte {
 	}
 
 	return res.Bytes()
+	// return res
 }
 
 func parseTreeLeaf(raw []byte) (int, *treeLeaf) {
@@ -87,12 +96,12 @@ func parseTreeLeaf(raw []byte) (int, *treeLeaf) {
 		util.PanicErr(fmt.Errorf("invalid tree file"))
 	}
 
-	leaf.Mode = string(raw[:space])
+	leaf.Mode = strconv.Itoa(util.BytesToInt(raw[:space]))
 	if space == 5 {
 		leaf.Mode = " " + leaf.Mode
 	}
 
-	null := bytes.IndexByte(raw, '\x00')
+	null := space + 1 + bytes.IndexByte(raw[space+1:], '\x00')
 	leaf.Path = string(raw[space+1 : null])
 
 	leaf.Sha = hex.EncodeToString(raw[null+1 : null+21])

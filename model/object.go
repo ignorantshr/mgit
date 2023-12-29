@@ -6,8 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
-	"log/slog"
 	"os"
 	"regexp"
 	"strconv"
@@ -35,23 +33,10 @@ func ReadObject(repo *Repository, sha string) Object {
 		util.PanicErr(_readObjectErr(nil, "file is not found"))
 	}
 
-	f, err := os.ReadFile(path)
+	raw, err := os.ReadFile(path)
 	if err != nil {
 		util.PanicErr(err)
 	}
-
-	// r, err := zlib.NewReader(bytes.NewReader(f))
-	r := bytes.NewReader(f)
-	// if err != nil {
-	// 	util.PanicErr(err)
-	// }
-	// defer r.Close()
-
-	raw, err := io.ReadAll(r)
-	if err != nil {
-		util.PanicErr(err)
-	}
-	slog.Debug("ReadObject", "raw", raw)
 
 	// Read object type
 	i := bytes.IndexByte(raw, ' ')
@@ -75,7 +60,7 @@ func ReadObject(repo *Repository, sha string) Object {
 		util.PanicErr(_readObjectErr(err, "size is not correct"))
 	}
 
-	raw = raw[i:]
+	raw = raw[i+1:]
 
 	var obj Object
 	switch format {
@@ -86,11 +71,12 @@ func ReadObject(repo *Repository, sha string) Object {
 	case "tag":
 		obj = NewTagObj()
 	case "blob":
-		obj = NewBlobObj(raw)
+		obj = NewBlobObj()
 	default:
 		util.PanicErr(_readObjectErr(nil, "unknown format "+format))
 	}
 
+	obj.Deserialize(raw)
 	return obj
 }
 

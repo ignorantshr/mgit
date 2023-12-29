@@ -36,9 +36,9 @@ func CreateRepository(p string) (*Repository, error) {
 		return nil, fmt.Errorf("%s is not empty", repo.gitdir)
 	}
 
-	if _, err := repo.repoDir(true, "branches"); err != nil {
-		return nil, err
-	}
+	// if _, err := repo.repoDir(true, "branches"); err != nil {
+	// 	return nil, err
+	// }
 	if _, err := repo.repoDir(true, "objects"); err != nil {
 		return nil, err
 	}

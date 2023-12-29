@@ -45,7 +45,7 @@ func commit(repo *model.Repository, msg string) {
 
 	ab := model.GetActiveBranch(repo)
 	if ab != "" {
-		p, err := repo.RepoFile(false, path.Join("refs/head", ab))
+		p, err := repo.RepoFile(false, path.Join("refs/heads", ab))
 		util.PanicErr(err)
 		f, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 		util.PanicErr(err)
@@ -79,7 +79,8 @@ func readGitAuthor() string {
 	}
 	vip.SetConfigType("ini")
 	vip.ReadInConfig()
-	name := vip.GetString("name")
-	email := vip.GetString("email")
+	user := vip.GetStringMap("user")
+	name := user["name"]
+	email := user["email"]
 	return fmt.Sprintf("%s <%s>", name, email)
 }

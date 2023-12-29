@@ -38,14 +38,14 @@ func CreateCommit(repo *Repository, tree, parent, author, msg string, ts time.Ti
 	c.Tree = tree
 	c.Parent = parent
 
-	offset := ts.UTC().Sub(ts)
+	_, offset := ts.Zone()
 	hours := offset / 3600
 	minutes := (offset % 3600) / 60
-	pre := '+'
-	if offset < 0 {
-		pre = '-'
+	sign := ""
+	if offset >= 0 {
+		sign = "+"
 	}
-	tz := fmt.Sprintf("%c%02d%02d", pre, hours, minutes)
+	tz := fmt.Sprintf("%s%02d%02d", sign, hours, minutes)
 	author += " " + strconv.FormatInt(ts.Unix(), 10) + " " + tz
 	c.Commiter = author
 	c.Author = author
@@ -90,8 +90,11 @@ func (k *kvlm) parse(raw []byte) {
 
 		key := string(raw[:spaceidx])
 		end := spaceidx + 1
-		for raw[end+1] != ' ' { // 值跨行时每行前面有一个空格
-			end = bytes.IndexByte(raw[end:], '\n')
+		for { // 值跨行时每行前面有一个空格
+			end += bytes.IndexByte(raw[end:], '\n')
+			if raw[end+1] != ' ' {
+				break
+			}
 		}
 		value := strings.ReplaceAll(string(raw[spaceidx+1:end]), "\n ", "\n")
 		switch key {
@@ -118,7 +121,7 @@ func (k *kvlm) serialize() []byte {
 		if len(v) == 0 {
 			return
 		}
-		res.WriteString(fmt.Sprintf("%s: ", k))
+		res.WriteString(fmt.Sprintf("%s ", k))
 		res.WriteString(strings.ReplaceAll(v, "\n", "\n "))
 		res.WriteByte('\n')
 	}

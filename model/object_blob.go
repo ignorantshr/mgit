@@ -6,8 +6,8 @@ type BlobObj struct {
 	data []byte
 }
 
-func NewBlobObj(data []byte) Object {
-	return &BlobObj{"blob", data}
+func NewBlobObj() Object {
+	return &BlobObj{fmt: "blob"}
 }
 
 func (b *BlobObj) Format() string {

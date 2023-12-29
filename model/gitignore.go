@@ -106,38 +106,37 @@ func CheckIgnore(p string, rules *GitIgnore) bool {
 	return checkIgnoreAbsolute(p, rules.Absolute)
 }
 
+// 检查在本工作树下的忽视规则
 func checkIgnoreScoped(p string, rules map[string][]*IgnoreRule) *bool {
 	parent := path.Dir(p)
+	once := false // compatiable with .vscode/
 	for {
 		if set, ok := rules[parent]; ok {
-			if res := checkIgnoreBase(parent, set); res != nil {
+			if res := checkIgnoreBase(p, set); res != nil {
 				return res
 			}
 		}
-		if parent == "." {
-			break
-		}
 		parent = path.Dir(parent)
+		if parent == "." {
+			if once {
+				break
+			}
+			once = true
+		}
 	}
 	return nil
 }
 
+// 检查在全局忽视规则
 func checkIgnoreAbsolute(p string, rules []*IgnoreRule) bool {
-	parent := path.Dir(p)
-	for parent != "" {
-		if res := checkIgnoreBase(parent, rules); res != nil {
-			return *res
-		}
-		if parent == "." {
-			break
-		}
-		parent = path.Dir(parent)
+	if res := checkIgnoreBase(p, rules); res != nil {
+		return *res
 	}
 	return false
 }
 
 func checkIgnoreBase(p string, rules []*IgnoreRule) *bool {
-	var res *bool
+	res := new(bool)
 	for _, v := range rules {
 		if ok, err := regexp.Match(v.Rule, []byte(p)); err != nil {
 			continue
