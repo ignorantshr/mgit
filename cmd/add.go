@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"os"
+	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -26,12 +28,20 @@ var addCmd = &cobra.Command{
 }
 
 func add(repo *model.Repository, paths []string, realDelete bool) {
-	rm(repo, paths, false)
+	pathSet := expandPaths(repo, nil, paths)
+	addedPath := []string{}
+
+	for k := range pathSet {
+		addedPath = append(addedPath, k)
+	}
+
+	// First remove all paths from the index, if they exist.
+	rm(repo, addedPath, false)
 
 	worktree := repo.Worktree() + string(filepath.Separator)
 
 	cleanPaths := [][2]string{} // (absolute, relative_to_worktree)
-	for _, p := range paths {
+	for p := range pathSet {
 		p, _ = filepath.Abs(p)
 		if strings.HasPrefix(p, worktree) && util.IsFile(p) {
 			relp, _ := filepath.Rel(worktree, p)
@@ -66,4 +76,41 @@ func add(repo *model.Repository, paths []string, realDelete bool) {
 	}
 
 	model.WriteIndex(repo, index)
+}
+
+func expandPaths(repo *model.Repository, rules *model.GitIgnore, paths []string) map[string]struct{} {
+	if rules == nil {
+		rules = model.ReadGitignore(repo)
+	}
+
+	dir := []string{}
+	res := make(map[string]struct{})
+	for _, p := range paths {
+		if !model.CheckIgnore(p, rules) {
+			abso, _ := filepath.Abs(p)
+			if !util.IsDir(abso) {
+				res[p] = struct{}{}
+			} else if !util.IsDirEmpty(abso) {
+				dir = append(dir, p)
+			}
+		}
+	}
+
+	dir = slices.Compact[[]string](dir)
+	child := []string{}
+	for _, d := range dir {
+		entries, err := os.ReadDir(d)
+		util.PanicErr(err)
+		for _, e := range entries {
+			child = append(child, path.Join(d, e.Name()))
+		}
+	}
+	if len(child) > 0 {
+		sub := expandPaths(repo, rules, child)
+		for p := range sub {
+			res[p] = struct{}{}
+		}
+	}
+
+	return res
 }

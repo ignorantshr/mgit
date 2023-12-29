@@ -92,13 +92,13 @@ func serializeTree(items []*treeLeaf) []byte {
 func parseTreeLeaf(raw []byte) (int, *treeLeaf) {
 	leaf := &treeLeaf{}
 	space := bytes.IndexByte(raw, ' ')
-	if space != 6 && space != 5 {
+	if space != 6 {
 		util.PanicErr(fmt.Errorf("invalid tree file"))
 	}
 
 	leaf.Mode = strconv.Itoa(util.BytesToInt(raw[:space]))
-	if space == 5 {
-		leaf.Mode = " " + leaf.Mode
+	if len(leaf.Mode) == 5 {
+		leaf.Mode = "0" + leaf.Mode
 	}
 
 	null := space + 1 + bytes.IndexByte(raw[space+1:], '\x00')

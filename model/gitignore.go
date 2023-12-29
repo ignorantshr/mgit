@@ -109,7 +109,7 @@ func CheckIgnore(p string, rules *GitIgnore) bool {
 // 检查在本工作树下的忽视规则
 func checkIgnoreScoped(p string, rules map[string][]*IgnoreRule) *bool {
 	parent := path.Dir(p)
-	once := false // compatiable with .vscode/
+	once := false // compatiable with "xxx/"
 	for {
 		if set, ok := rules[parent]; ok {
 			if res := checkIgnoreBase(p, set); res != nil {
