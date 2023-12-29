@@ -24,3 +24,7 @@ func CommitCmd(msg string) {
 	_commitMsg = msg
 	commitCmd.Run(nil, nil)
 }
+
+func ShowRefCmd() {
+	showRefCmd.Run(nil, nil)
+}

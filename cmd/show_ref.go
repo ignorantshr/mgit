@@ -16,7 +16,7 @@ var showRefCmd = &cobra.Command{
 	Short: "List references.",
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")
-		refs := model.ListRef(repo, ".")
+		refs := model.ListRef(repo, "")
 		showRef(repo, refs, true, "")
 	},
 }
@@ -31,8 +31,10 @@ func showRef(repo *model.Repository, refs map[string]any, withHash bool, prefix 
 		case string:
 			if withHash {
 				v += " "
+			} else {
+				v = ""
 			}
-			fmt.Printf("%s%s%s", v, p, k)
+			fmt.Printf("%s%s%s\n", v, p, k)
 		default:
 			showRef(repo, v.(map[string]any), withHash, p+k)
 		}

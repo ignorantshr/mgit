@@ -47,6 +47,7 @@ func ListRef(repo *Repository, p string) map[string]any {
 		if util.IsDir(can) {
 			res[v.Name()] = ListRef(repo, can)
 		} else {
+			can, _ = strings.CutPrefix(can, repo.gitdir)
 			res[v.Name()] = GetRefSha(repo, can)
 		}
 	}

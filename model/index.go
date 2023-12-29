@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"os"
 	"path"
+	"slices"
 	"sort"
 	"strconv"
 
@@ -197,32 +198,37 @@ func WriteIndex(repo *Repository, index *Index) {
 }
 
 func Index2Tree(repo *Repository, index *Index) string {
+	// 遍历 index 文件，根据文件路径由深到浅逐层构建 tree 结构
 	contents := make(map[string][]any)
 	sortpaths := make([]string, 0)
 
 	for _, e := range index.Entries {
 		dir := path.Dir(e.Name)
+		contents[dir] = append(contents[dir], e)
+		sortpaths = append(sortpaths, dir)
 
 		key := dir
+		// 对每一级目录都建立一个列表项
 		for key != "." {
 			if _, ok := contents[key]; !ok {
 				contents[key] = []any{}
 			}
 			key = path.Dir(key)
 		}
-
-		contents[dir] = append(contents[dir], e)
-		sortpaths = append(sortpaths, dir)
 	}
 
+	// 路径长度倒序
 	sort.Slice(sortpaths, func(i, j int) bool {
 		return len(sortpaths[i]) > len(sortpaths[j])
 	})
+	// 去重
+	sortpaths = slices.Compact[[]string](sortpaths)
 
-	sha := ""
+	sha := "" // 记录 tree 根的 sha
 	for _, p := range sortpaths {
 		tree := NewTreeObj()
 
+		// 每个文件路径构建一棵树
 		for _, e := range contents[p] {
 			// An entry can be a normal GitIndexEntry read from the index,
 			// or a tree we've created.
@@ -240,10 +246,10 @@ func Index2Tree(repo *Repository, index *Index) string {
 			tree.items = append(tree.items, leaf)
 		}
 
-		sha = WriteObject(repo, tree)
+		sha = WriteObject(repo, tree) // 写子树到磁盘
 		parent := path.Dir(p)
 		base := path.Base(p)
-		contents[parent] = append(contents[parent], [2]string{base, sha})
+		contents[parent] = append(contents[parent], [2]string{base, sha}) // 加到父目录项中
 	}
 
 	return sha
