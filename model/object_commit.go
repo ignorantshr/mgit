@@ -101,7 +101,7 @@ func (k *kvlm) parse(raw []byte) {
 		case "tree":
 			k.Tree = value
 		case "parent":
-			k.Parent += value
+			k.Parent += value + "\n"
 		case "author":
 			k.Author = value
 		case "commiter":
@@ -128,6 +128,7 @@ func (k *kvlm) serialize() []byte {
 
 	write("tree", k.Tree)
 	write("author", k.Author)
+	write("parent", k.Parent)
 	write("commiter", k.Commiter)
 	write("gpgsig", k.Gpgsign)
 	res.WriteByte('\n')

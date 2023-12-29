@@ -31,6 +31,9 @@ var logCmd = &cobra.Command{
 }
 
 func logPrint(repo *model.Repository, sha string) {
+	if sha == "" {
+		return
+	}
 	commit := model.ReadObject(repo, sha).(*model.CommitObj)
 	kv := commit.KV()
 	msg := kv.Message
