@@ -1,5 +1,7 @@
 .mgit/
+.git/
 .vscode/
 
+git_test.go
 mgit
 __debug_*

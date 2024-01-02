@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -78,16 +80,20 @@ func ReadGitignore(repo *Repository) *GitIgnore {
 	globalFile := path.Join(confHome, "git/ignore")
 	readRules(globalFile)
 
-	// .gitignore files in the index
-	indexF := ReadIndex(repo)
-
-	for _, v := range indexF.Entries {
-		if v.Name == ".gitignore" || strings.HasSuffix(v.Name, "/.gitignore") {
-			dir := path.Dir(v.Name)
-			contents := ReadObject(repo, v.Sha).(*BlobObj)
-			lines := strings.Split(string(contents.data), "\n")
-			res.Scoped[dir] = parseGitignoreRules(lines)
+	// .gitignore files in the worktree
+	ignoreFiles := []string{}
+	filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
+		if !d.IsDir() && d.Name() == ".gitignore" {
+			ignoreFiles = append(ignoreFiles, path)
 		}
+		return nil
+	})
+
+	for _, f := range ignoreFiles {
+		raw, err := os.ReadFile(f)
+		util.PanicErr(err)
+		lines := strings.Split(string(raw), "\n")
+		res.Scoped[filepath.Dir(f)] = parseGitignoreRules(lines)
 	}
 
 	return res
