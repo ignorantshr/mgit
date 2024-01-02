@@ -27,6 +27,7 @@ var addCmd = &cobra.Command{
 	},
 }
 
+// 删除新增或修改的旧条目，然后重写 index 文件
 func add(repo *model.Repository, paths []string, realDelete bool) {
 	pathSet := expandPaths(repo, nil, paths)
 	addedPath := []string{}
@@ -35,7 +36,6 @@ func add(repo *model.Repository, paths []string, realDelete bool) {
 		addedPath = append(addedPath, k)
 	}
 
-	// First remove all paths from the index, if they exist.
 	rm(repo, addedPath)
 
 	worktree := repo.Worktree() + string(filepath.Separator)

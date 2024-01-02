@@ -123,6 +123,7 @@ func statusHeadWorktree(repo *model.Repository, index *model.Index) {
 		fmt.Printf("\tdeleted: %v\n", name)
 	}
 
+	// ------------------------
 	untracked := []string{}
 	if len(allFiles) != 0 {
 		fmt.Println()

@@ -15,7 +15,7 @@ func init() {
 
 var rmCmd = &cobra.Command{
 	Use:   "rm <path ...>",
-	Short: "Remove files from the working tree and the index.",
+	Short: "Remove files from the index.",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")
@@ -23,6 +23,7 @@ var rmCmd = &cobra.Command{
 	},
 }
 
+// 过滤出不删除的条目，重写 index 文件
 func rm(repo *model.Repository, paths []string) {
 	index := model.ReadIndex(repo)
 
