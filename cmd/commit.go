@@ -29,7 +29,7 @@ func init() {
 }
 
 var commitCmd = &cobra.Command{
-	Use:   "commit -m <MESSAGE>",
+	Use:   "commit -m <message>",
 	Short: "Record changes to the repository.",
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")

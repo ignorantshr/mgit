@@ -18,7 +18,7 @@ func init() {
 }
 
 var addCmd = &cobra.Command{
-	Use:   "add <PAHT ...>",
+	Use:   "add <path ...>",
 	Short: "Add files contents to the index.",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

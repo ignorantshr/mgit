@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os/user"
+	"sort"
 	"strconv"
 	"time"
 
@@ -38,7 +39,11 @@ func lsFiles(repo *model.Repository, verbose bool) {
 		fmt.Printf("Index file v%d, %d entries\n", index.Version, len(index.Entries))
 	}
 
-	for _, v := range index.Entries {
+	entries := index.Entries
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Name < entries[j].Name
+	})
+	for _, v := range entries {
 		fmt.Println(v.Name)
 		if verbose {
 			fmt.Printf("\t%v with perms: %v\n", _modeType[v.ModeType], v.ModePerms)

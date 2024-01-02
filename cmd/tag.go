@@ -17,7 +17,7 @@ var _createTagObj bool
 var _tagMsg string
 
 var tagCmd = &cobra.Command{
-	Use:   "tag | tag NAME [OBJECT]",
+	Use:   "tag | tag <name> [object]",
 	Short: "List and create tags",
 	Args:  cobra.RangeArgs(0, 2),
 	Run: func(cmd *cobra.Command, args []string) {

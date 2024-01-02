@@ -12,7 +12,7 @@ func init() {
 }
 
 var checkIgnoreCmd = &cobra.Command{
-	Use:   "check-ignore",
+	Use:   "check-ignore <path ...>",
 	Short: "Check path(s) against ignore rules.",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

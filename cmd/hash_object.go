@@ -22,12 +22,13 @@ var (
 
 func init() {
 	hashObjectCmd.Flags().BoolVarP(&writeFlag, "write", "w", false, "Actually write the object into the database")
-	hashObjectCmd.Flags().StringVarP(&typeFlag, "type", "t", "blob", "Specify the type")
+	hashObjectCmd.Flags().StringVarP(&typeFlag, "type", "t", "", "Specify the type")
+	hashObjectCmd.MarkFlagRequired("type")
 	rootCmd.AddCommand(hashObjectCmd)
 }
 
 var hashObjectCmd = &cobra.Command{
-	Use:   "hash-object [-w] [-t TYPE] FILE",
+	Use:   "hash-object {-t blob|tree|commit|tag} <file>",
 	Short: "Compute object ID and optionally creates a blob from a file",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

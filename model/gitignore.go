@@ -138,7 +138,7 @@ func checkIgnoreAbsolute(p string, rules []*IgnoreRule) bool {
 func checkIgnoreBase(p string, rules []*IgnoreRule) *bool {
 	res := new(bool)
 	for _, v := range rules {
-		if ok, err := regexp.Match(v.Rule, []byte(p)); err != nil {
+		if ok, err := regexp.MatchString(v.Rule, p); err != nil {
 			continue
 		} else if ok {
 			*res = v.Excluded

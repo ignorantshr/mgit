@@ -15,7 +15,7 @@ func init() {
 }
 
 var initCmd = &cobra.Command{
-	Use:   "init",
+	Use:   "init <path>",
 	Short: "Initialize a git directory",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
-	"math/big"
 	"os"
 	"path"
 	"slices"
@@ -95,7 +94,8 @@ func ReadIndex(repo *Repository) *Index {
 		uid := util.BytesToInt(content[idx+28 : idx+32])
 		gid := util.BytesToInt(content[idx+32 : idx+36])
 		fsize := util.BytesToInt64(content[idx+36 : idx+40])
-		sha := fmt.Sprintf("%40x", new(big.Int).SetBytes(content[idx+40:idx+60])) // 将字节序列表示的整数转换为一个 40 字节长度的十六进制字符串
+		sha := hex.EncodeToString(content[idx+40 : idx+60]) // fmt.Sprintf("%40x", new(big.Int).SetBytes(content[idx+40:idx+60])) // 将字节序列表示的整数转换为一个 40 字节长度的十六进制字符串
+		util.PanicErr(err)
 		flags := util.BytesToInt64(content[idx+60 : idx+62])
 		flagAssumValid := (flags & 0b1000000000000000) != 0
 		// flagExtend := (flags & 0b0100000000000000) != 0 // assert

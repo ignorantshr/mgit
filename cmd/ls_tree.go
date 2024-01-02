@@ -18,7 +18,7 @@ func init() {
 }
 
 var lsTreeCmd = &cobra.Command{
-	Use:   "ls-tree TREE",
+	Use:   "ls-tree <tree>",
 	Short: "Pretty-print a tree object.",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

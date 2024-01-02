@@ -69,13 +69,6 @@ func serializeTree(items []*treeLeaf) []byte {
 
 	res := bytes.Buffer{}
 	for _, item := range items {
-		// res = append(res, []byte(item.Mode)...)
-		// res = append(res, ' ')
-		// res = append(res, []byte(item.Path)...)
-		// res = append(res, '\x00')
-		// sha, err := hex.DecodeString(item.Sha)
-		// util.PanicErr(err)
-		// res = append(res, sha...)
 		res.WriteString(item.Mode)
 		res.WriteByte(' ')
 		res.WriteString(item.Path)

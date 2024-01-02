@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -15,7 +14,7 @@ func init() {
 }
 
 var rmCmd = &cobra.Command{
-	Use:   "rm <PAHT ...>",
+	Use:   "rm <path ...>",
 	Short: "Remove files from the working tree and the index.",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -50,11 +49,11 @@ func rm(repo *model.Repository, paths []string, realDelete bool) {
 		}
 	}
 
-	if realDelete {
-		for _, p := range remove {
-			os.RemoveAll(p)
-		}
-	}
+	// if realDelete {
+	// 	for _, p := range remove {
+	// 		os.RemoveAll(p)
+	// 	}
+	// }
 
 	index.Entries = keptEntries
 	model.WriteIndex(repo, index)

@@ -15,7 +15,7 @@ func init() {
 var revParseType string
 
 var revParseCmd = &cobra.Command{
-	Use:                   "rev-parse [-t TYPE] NAME",
+	Use:                   "rev-parse <name>",
 	Short:                 "Parse revision (or other objects) identifiers",
 	DisableFlagsInUseLine: true,
 	Args:                  cobra.ExactArgs(1),
