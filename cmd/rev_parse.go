@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git rev-parse
+
+打印指定对象的 sha 值
+*/
+
 func init() {
 	revParseCmd.Flags().StringVarP(&revParseType, "type", "t", "", "Specify the expected type")
 	rootCmd.AddCommand(revParseCmd)

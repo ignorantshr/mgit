@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-/* git cat-file 命令实现
+/* git cat-file
 
 查看目标内容
 */

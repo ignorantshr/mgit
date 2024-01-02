@@ -25,6 +25,10 @@ func CommitCmd(msg string) {
 	commitCmd.Run(nil, nil)
 }
 
+func CheckoutCmd(args []string) {
+	checkoutCmd.Run(nil, args)
+}
+
 func ShowRefCmd() {
 	showRefCmd.Run(nil, nil)
 }

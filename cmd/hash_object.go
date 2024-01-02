@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-/* git hash-object 命令实现
+/* git hash-object
 
 计算目标 hash 值，存储到 .git
 */

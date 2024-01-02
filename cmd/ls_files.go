@@ -11,6 +11,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git ls-files
+
+罗列出 index 文件（暂存区）的内容
+*/
+
 var _lsFilesVerbose bool
 
 func init() {

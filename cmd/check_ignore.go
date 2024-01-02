@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git check-ignore
+
+检查路径是否与 git ignore 文件规则匹配
+*/
+
 func init() {
 	rootCmd.AddCommand(checkIgnoreCmd)
 }

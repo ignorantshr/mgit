@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-/* git init 命令实现
+/* git init
 
 创建 .git 文件目录结构，初始化 git 项目
 */

@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git show-ref
+
+列出 git 所有的引用对象
+*/
+
 func init() {
 	rootCmd.AddCommand(showRefCmd)
 }

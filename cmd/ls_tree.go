@@ -10,6 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git ls-tree
+
+打印树形结构
+*/
+
 var _recur *bool
 
 func init() {

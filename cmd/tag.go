@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git tag
+
+创建 tag 引用对象
+*/
+
 func init() {
 	tagCmd.Flags().BoolVarP(&_createTagObj, "create_tag_object", "a", false, "annotated tag, needs a message")
 	tagCmd.Flags().StringVarP(&_tagMsg, "message", "m", "", "tag message")

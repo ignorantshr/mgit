@@ -16,6 +16,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git status
+
+通过将 index 文件和 HEAD 做对比、将 index 文件和 文件系统 做对比 实现。
+*/
+
 func init() {
 	rootCmd.AddCommand(statusCmd)
 }
@@ -34,7 +39,6 @@ func status(repo *model.Repository) {
 
 	statusBranch(repo)
 	statusHeadIndex(repo, index)
-	// fmt.Println()
 	statusHeadWorktree(repo, index)
 }
 
@@ -111,7 +115,7 @@ func statusHeadWorktree(repo *model.Repository, index *model.Index) {
 
 	sort.Strings(modified)
 	for _, name := range modified {
-		fmt.Printf("\tmodified: %v", name)
+		fmt.Printf("\tmodified: %v\n", name)
 	}
 
 	sort.Strings(deleted)
