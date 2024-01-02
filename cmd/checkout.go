@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/ignorantshr/mgit/model"
 	"github.com/ignorantshr/mgit/util"
@@ -20,7 +21,7 @@ func init() {
 }
 
 var checkoutCmd = &cobra.Command{
-	Use:                   "checkout {commit|branch} <path>",
+	Use:                   "checkout {<commit>|<branch>} <path>",
 	Short:                 "Checkout a commit inside of a directory.",
 	DisableFlagsInUseLine: true,
 	Args:                  cobra.MinimumNArgs(2),
@@ -31,17 +32,20 @@ var checkoutCmd = &cobra.Command{
 			util.PanicErr(fmt.Errorf("%s not a valid path", p))
 		}
 
-		obj := model.ReadObject(repo, model.FindObject(repo, args[0], "", true))
+		sha := model.FindObject(repo, args[0], "", true)
+		obj := model.ReadObject(repo, sha)
 		if obj == nil {
 			return
 		}
 		if obj.Format() == "commit" {
 			cobj := obj.(*model.CommitObj)
-			obj = model.ReadObject(repo, cobj.KV().Tree)
+			sha = cobj.KV().Tree
+			obj = model.ReadObject(repo, sha)
 		}
 
 		os.MkdirAll(p, 0755)
 		checkoutTree(repo, p, obj.(*model.TreeObj))
+		buildGitDir(repo, args[0], p, sha)
 	},
 }
 
@@ -58,5 +62,30 @@ func checkoutTree(repo *model.Repository, destPath string, tree *model.TreeObj) 
 			err := os.WriteFile(dest, obj.(*model.BlobObj).Serialize(repo), 0644)
 			util.PanicErr(err)
 		}
+	}
+}
+
+func buildGitDir(repo *model.Repository, src, destPath, ref string) {
+	newGitDir := filepath.Join(destPath, model.GitDir)
+	err := util.CopyDir(repo.GitDir(), newGitDir)
+	util.PanicErr(err)
+	os.Chdir(destPath)
+
+	paths := []string{}
+	entries := model.Tree2Map(repo, ref, "")
+	for p := range entries {
+		paths = append(paths, p)
+	}
+	repo.SetWorktree(filepath.Join(repo.Worktree(), destPath))
+	repo.SetGitDir(filepath.Join(repo.Worktree(), model.GitDir))
+	os.Remove(filepath.Join(repo.GitDir(), "index"))
+	add(repo, paths)
+
+	head, err := os.OpenFile(filepath.Join(repo.GitDir(), "HEAD"), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	util.PanicErr(err)
+	if model.HashRegx.MatchString(src) {
+		head.WriteString(src)
+	} else {
+		head.WriteString("ref: " + model.BranchDir + src)
 	}
 }

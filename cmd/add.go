@@ -23,12 +23,12 @@ var addCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")
-		add(repo, args, true)
+		add(repo, args)
 	},
 }
 
 // 删除新增或修改的旧条目，然后重写 index 文件
-func add(repo *model.Repository, paths []string, realDelete bool) {
+func add(repo *model.Repository, paths []string) {
 	pathSet := expandPaths(repo, nil, paths)
 	addedPath := []string{}
 

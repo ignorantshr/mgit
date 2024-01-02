@@ -117,8 +117,16 @@ func (r *Repository) Worktree() string {
 	return r.worktree
 }
 
+func (r *Repository) SetWorktree(p string) {
+	r.worktree = p
+}
+
 func (r *Repository) GitDir() string {
 	return r.gitdir
+}
+
+func (r *Repository) SetGitDir(p string) {
+	r.gitdir = p
 }
 
 // 组装成 .git/** 文件字符串

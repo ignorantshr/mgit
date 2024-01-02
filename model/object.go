@@ -14,6 +14,8 @@ import (
 	"github.com/ignorantshr/mgit/util"
 )
 
+var HashRegx = regexp.MustCompile("^[0-9A-Fa-f]{4,40}$")
+
 type Object interface {
 	Format() string
 	Serialize(repo *Repository) []byte
@@ -169,7 +171,6 @@ This function is aware of:
 */
 func resolveObject(repo *Repository, name string) []string {
 	candidates := make([]string, 0)
-	hashRegx := regexp.MustCompile("^[0-9A-Fa-f]{4,40}$")
 	name = strings.TrimSpace(name)
 
 	if name == "" {
@@ -184,7 +185,7 @@ func resolveObject(repo *Repository, name string) []string {
 		return candidates
 	}
 
-	if hashRegx.Match([]byte(name)) {
+	if HashRegx.Match([]byte(name)) {
 		name = strings.ToLower(name)
 		prefix := name[:2]
 		p, err := repo.repoDir(false, "objects", prefix)
