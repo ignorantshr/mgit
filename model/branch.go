@@ -8,6 +8,10 @@ import (
 	"github.com/ignorantshr/mgit/util"
 )
 
+const (
+	BranchDir = "refs/heads/"
+)
+
 func GetActiveBranch(repo *Repository) string {
 	rf, err := repo.RepoFile(false, "HEAD")
 	util.PanicErr(err)
@@ -15,7 +19,7 @@ func GetActiveBranch(repo *Repository) string {
 	head, err := os.ReadFile(rf)
 	util.PanicErr(err)
 
-	if bytes.HasPrefix(head, []byte("ref: refs/heads/")) {
+	if bytes.HasPrefix(head, []byte("ref: "+BranchDir)) {
 		return strings.TrimSpace(string(head[16:])) // remove \n
 	}
 	return ""
