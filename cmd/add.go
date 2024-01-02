@@ -36,7 +36,7 @@ func add(repo *model.Repository, paths []string, realDelete bool) {
 	}
 
 	// First remove all paths from the index, if they exist.
-	rm(repo, addedPath, false)
+	rm(repo, addedPath)
 
 	worktree := repo.Worktree() + string(filepath.Separator)
 

@@ -10,6 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/* git checkout
+
+因为 mgit 没有完整的测试过，所以为了防止对 worktree 造成不可恢复的动作，我们使用新的文件夹来承载历史版本
+*/
+
 func init() {
 	rootCmd.AddCommand(checkoutCmd)
 }
@@ -21,6 +26,11 @@ var checkoutCmd = &cobra.Command{
 	Args:                  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")
+		p := args[1]
+		if util.IsFile(p) || (util.IsDir(p) && !util.IsDirEmpty(p)) {
+			util.PanicErr(fmt.Errorf("%s not a valid path", p))
+		}
+
 		obj := model.ReadObject(repo, model.FindObject(repo, args[0], "", true))
 		if obj == nil {
 			return
@@ -29,12 +39,8 @@ var checkoutCmd = &cobra.Command{
 			cobj := obj.(*model.CommitObj)
 			obj = model.ReadObject(repo, cobj.KV().Tree)
 		}
-		p := args[1]
-		if !util.IsDir(p) || !util.IsDirEmpty(p) {
-			util.PanicErr(fmt.Errorf("%s not a valid path", p))
-		}
-		os.MkdirAll(p, 0755)
 
+		os.MkdirAll(p, 0755)
 		checkoutTree(repo, p, obj.(*model.TreeObj))
 	},
 }

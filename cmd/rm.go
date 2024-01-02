@@ -19,11 +19,11 @@ var rmCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := model.FindRepo(".")
-		rm(repo, args, true)
+		rm(repo, args)
 	},
 }
 
-func rm(repo *model.Repository, paths []string, realDelete bool) {
+func rm(repo *model.Repository, paths []string) {
 	index := model.ReadIndex(repo)
 
 	worktree := repo.Worktree() + string(filepath.Separator)
@@ -37,23 +37,15 @@ func rm(repo *model.Repository, paths []string, realDelete bool) {
 	}
 
 	keptEntries := []*model.IndexEntry{}
-	remove := []string{}
 
 	for _, e := range index.Entries {
 		fullPath := path.Join(repo.Worktree(), e.Name)
 		if _, ok := abspaths[fullPath]; ok {
-			remove = append(remove, fullPath)
 			delete(abspaths, fullPath)
 		} else {
 			keptEntries = append(keptEntries, e)
 		}
 	}
-
-	// if realDelete {
-	// 	for _, p := range remove {
-	// 		os.RemoveAll(p)
-	// 	}
-	// }
 
 	index.Entries = keptEntries
 	model.WriteIndex(repo, index)
